@@ -1,0 +1,379 @@
+#!/usr/bin/env node
+
+/**
+ * Calculator UI Component Generator
+ * Creates a complete scientific calculator UI with modern styling
+ */
+
+const fs = require('fs');
+const path = require('path');
+
+function generateCalculatorHTML() {
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Modern Scientific Calculator</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style type="text/tailwindcss">
+    @layer utilities {
+      .btn-press {
+        @apply transition-all duration-200 active:scale-95 active:opacity-90;
+      }
+      .error-shake {
+        animation: error-shake 0.5s ease-in-out;
+      }
+      @keyframes error-shake {
+        0%, 100% { transform: translateX(0); }
+        20%, 60% { transform: translateX(-5px); }
+        40%, 80% { transform: translateX(5px); }
+      }
+    }
+  </style>
+</head>
+<body class="bg-gradient-to-br from-gray-900 to-gray-800 min-h-screen flex items-center justify-center p-4">
+  <div class="calculator bg-gray-800 rounded-2xl p-6 shadow-2xl max-w-md w-full">
+    <!-- Header -->
+    <div class="header mb-4 text-center">
+      <h1 class="text-white text-xl font-bold">Scientific Calculator</h1>
+      <div class="angle-mode text-gray-400 text-xs mt-1">DEG</div>
+    </div>
+
+    <!-- Display Area -->
+    <div class="display bg-gray-900 rounded-xl p-5 mb-5 text-right">
+      <div class="expression text-gray-400 text-sm min-h-6 overflow-x-auto whitespace-nowrap" aria-live="polite" aria-atomic="true"></div>
+      <div class="result text-white text-3xl font-semibold overflow-x-auto whitespace-nowrap" aria-live="polite" aria-atomic="true">0</div>
+    </div>
+
+    <!-- Button Grid -->
+    <div class="grid grid-cols-4 gap-3">
+      <!-- Row 1: Functions -->
+      <button class="btn-function bg-purple-600 hover:bg-purple-700 text-white rounded-xl py-4 px-3 text-sm font-medium btn-press transition-all" data-type="function" data-value="sin" aria-label="sine function">sin</button>
+      <button class="btn-function bg-purple-600 hover:bg-purple-700 text-white rounded-xl py-4 px-3 text-sm font-medium btn-press transition-all" data-type="function" data-value="cos" aria-label="cosine function">cos</button>
+      <button class="btn-function bg-purple-600 hover:bg-purple-700 text-white rounded-xl py-4 px-3 text-sm font-medium btn-press transition-all" data-type="function" data-value="tan" aria-label="tangent function">tan</button>
+      <button class="btn-special bg-red-600 hover:bg-red-700 text-white rounded-xl py-4 px-3 text-sm font-medium btn-press transition-all" data-type="special" data-value="AC" aria-label="all clear">AC</button>
+
+      <!-- Row 2: More Functions -->
+      <button class="btn-function bg-purple-600 hover:bg-purple-700 text-white rounded-xl py-4 px-3 text-sm font-medium btn-press transition-all" data-type="function" data-value="log" aria-label="logarithm function">log</button>
+      <button class="btn-function bg-purple-600 hover:bg-purple-700 text-white rounded-xl py-4 px-3 text-sm font-medium btn-press transition-all" data-type="function" data-value="ln" aria-label="natural logarithm function">ln</button>
+      <button class="btn-function bg-purple-600 hover:bg-purple-700 text-white rounded-xl py-4 px-3 text-sm font-medium btn-press transition-all" data-type="function" data-value="sqrt" aria-label="square root function">√</button>
+      <button class="btn-special bg-red-600 hover:bg-red-700 text-white rounded-xl py-4 px-3 text-sm font-medium btn-press transition-all" data-type="special" data-value="C" aria-label="clear entry">C</button>
+
+      <!-- Row 3: Parentheses and Power -->
+      <button class="btn-function bg-purple-600 hover:bg-purple-700 text-white rounded-xl py-4 px-3 text-sm font-medium btn-press transition-all" data-type="function" data-value="(" aria-label="open parenthesis">(</button>
+      <button class="btn-function bg-purple-600 hover:bg-purple-700 text-white rounded-xl py-4 px-3 text-sm font-medium btn-press transition-all" data-type="function" data-value=")" aria-label="close parenthesis">)</button>
+      <button class="btn-function bg-purple-600 hover:bg-purple-700 text-white rounded-xl py-4 px-3 text-sm font-medium btn-press transition-all" data-type="function" data-value="^" aria-label="power function">x^y</button>
+      <button class="btn-operator bg-blue-600 hover:bg-blue-700 text-white rounded-xl py-4 px-3 text-xl font-medium btn-press transition-all" data-type="operator" data-value="/" aria-label="division operator">÷</button>
+
+      <!-- Row 4: Numbers -->
+      <button class="btn-number bg-gray-700 hover:bg-gray-600 text-white rounded-xl py-4 px-3 text-xl font-medium btn-press transition-all" data-type="number" data-value="7" aria-label="number seven">7</button>
+      <button class="btn-number bg-gray-700 hover:bg-gray-600 text-white rounded-xl py-4 px-3 text-xl font-medium btn-press transition-all" data-type="number" data-value="8" aria-label="number eight">8</button>
+      <button class="btn-number bg-gray-700 hover:bg-gray-600 text-white rounded-xl py-4 px-3 text-xl font-medium btn-press transition-all" data-type="number" data-value="9" aria-label="number nine">9</button>
+      <button class="btn-operator bg-blue-600 hover:bg-blue-700 text-white rounded-xl py-4 px-3 text-xl font-medium btn-press transition-all" data-type="operator" data-value="*" aria-label="multiplication operator">×</button>
+
+      <!-- Row 5: Numbers -->
+      <button class="btn-number bg-gray-700 hover:bg-gray-600 text-white rounded-xl py-4 px-3 text-xl font-medium btn-press transition-all" data-type="number" data-value="4" aria-label="number four">4</button>
+      <button class="btn-number bg-gray-700 hover:bg-gray-600 text-white rounded-xl py-4 px-3 text-xl font-medium btn-press transition-all" data-type="number" data-value="5" aria-label="number five">5</button>
+      <button class="btn-number bg-gray-700 hover:bg-gray-600 text-white rounded-xl py-4 px-3 text-xl font-medium btn-press transition-all" data-type="number" data-value="6" aria-label="number six">6</button>
+      <button class="btn-operator bg-blue-600 hover:bg-blue-700 text-white rounded-xl py-4 px-3 text-xl font-medium btn-press transition-all" data-type="operator" data-value="-" aria-label="subtraction operator">−</button>
+
+      <!-- Row 6: Numbers -->
+      <button class="btn-number bg-gray-700 hover:bg-gray-600 text-white rounded-xl py-4 px-3 text-xl font-medium btn-press transition-all" data-type="number" data-value="1" aria-label="number one">1</button>
+      <button class="btn-number bg-gray-700 hover:bg-gray-600 text-white rounded-xl py-4 px-3 text-xl font-medium btn-press transition-all" data-type="number" data-value="2" aria-label="number two">2</button>
+      <button class="btn-number bg-gray-700 hover:bg-gray-600 text-white rounded-xl py-4 px-3 text-xl font-medium btn-press transition-all" data-type="number" data-value="3" aria-label="number three">3</button>
+      <button class="btn-operator bg-blue-600 hover:bg-blue-700 text-white rounded-xl py-4 px-3 text-xl font-medium btn-press transition-all" data-type="operator" data-value="+" aria-label="addition operator">+</button>
+
+      <!-- Row 7: Zero and Decimal -->
+      <button class="btn-number bg-gray-700 hover:bg-gray-600 text-white rounded-xl py-4 px-3 text-xl font-medium btn-press transition-all col-span-2" data-type="number" data-value="0" aria-label="number zero">0</button>
+      <button class="btn-number bg-gray-700 hover:bg-gray-600 text-white rounded-xl py-4 px-3 text-xl font-medium btn-press transition-all" data-type="number" data-value="." aria-label="decimal point">.</button>
+      <button class="btn-equals bg-green-600 hover:bg-green-700 text-white rounded-xl py-4 px-3 text-xl font-medium btn-press transition-all" data-type="equals" data-value="=" aria-label="equals">=</button>
+    </div>
+  </div>
+
+  <script>
+    // Calculator class implementation
+    class ScientificCalculator {
+      constructor() {
+        this.display = '';
+        this.expression = '';
+        this.result = '0';
+        this.lastOperation = null;
+        this.waitingForOperand = false;
+        this.memory = 0;
+        this.angleMode = 'deg';
+        this.updateDisplay();
+      }
+
+      updateDisplay() {
+        const expressionEl = document.querySelector('.expression');
+        const resultEl = document.querySelector('.result');
+
+        if (expressionEl) expressionEl.textContent = this.expression;
+        if (resultEl) resultEl.textContent = this.result;
+      }
+
+      inputNumber(num) {
+        if (this.waitingForOperand) {
+          this.display = num;
+          this.waitingForOperand = false;
+        } else {
+          this.display = this.display === '0' ? num : this.display + num;
+        }
+        this.result = this.display;
+        this.updateDisplay();
+      }
+
+      inputDecimal() {
+        if (this.waitingForOperand) {
+          this.display = '0.';
+          this.waitingForOperand = false;
+        } else if (this.display.indexOf('.') === -1) {
+          this.display += '.';
+        }
+        this.result = this.display;
+        this.updateDisplay();
+      }
+
+      inputOperation(op) {
+        const lastChar = this.expression.slice(-1);
+
+        if (['+', '-', '*', '/'].includes(lastChar)) {
+          this.expression = this.expression.slice(0, -1) + op;
+        } else {
+          this.expression += this.display + op;
+        }
+
+        this.lastOperation = op;
+        this.waitingForOperand = true;
+        this.updateDisplay();
+      }
+
+      calculate() {
+        try {
+          const expressionToEvaluate = this.expression + this.display;
+          const result = new Function('return ' + expressionToEvaluate)();
+          this.display = this.formatResult(result);
+          this.expression = '';
+          this.result = this.display;
+          this.waitingForOperand = true;
+          this.updateDisplay();
+        } catch (error) {
+          this.displayError('Error');
+        }
+      }
+
+      formatResult(value) {
+        const rounded = Math.round(value * 10000000000) / 10000000000;
+        return rounded.toString();
+      }
+
+      handleFunction(func) {
+        try {
+          const currentValue = parseFloat(this.display);
+          let result;
+
+          switch(func) {
+            case 'sin':
+              result = Math.sin(this.angleMode === 'deg' ? currentValue * Math.PI / 180 : currentValue);
+              break;
+            case 'cos':
+              result = Math.cos(this.angleMode === 'deg' ? currentValue * Math.PI / 180 : currentValue);
+              break;
+            case 'tan':
+              result = Math.tan(this.angleMode === 'deg' ? currentValue * Math.PI / 180 : currentValue);
+              break;
+            case 'log':
+              result = Math.log10(currentValue);
+              break;
+            case 'ln':
+              result = Math.log(currentValue);
+              break;
+            case 'sqrt':
+              result = Math.sqrt(currentValue);
+              break;
+            case 'pow2':
+              result = Math.pow(currentValue, 2);
+              break;
+            case 'pow3':
+              result = Math.pow(currentValue, 3);
+              break;
+            case 'pow10':
+              result = Math.pow(10, currentValue);
+              break;
+            case 'reciprocal':
+              result = 1 / currentValue;
+              break;
+            case 'factorial':
+              result = this.factorial(Math.floor(currentValue));
+              break;
+            default:
+              throw new Error('Unknown function');
+          }
+
+          this.display = this.formatResult(result);
+          this.result = this.display;
+          this.waitingForOperand = true;
+          this.updateDisplay();
+        } catch (error) {
+          this.displayError('Error');
+        }
+      }
+
+      factorial(n) {
+        if (n < 0) return NaN;
+        if (n === 0 || n === 1) return 1;
+        let result = 1;
+        for (let i = 2; i <= n; i++) {
+          result *= i;
+        }
+        return result;
+      }
+
+      clearEntry() {
+        this.display = '0';
+        this.result = '0';
+        this.updateDisplay();
+      }
+
+      allClear() {
+        this.display = '0';
+        this.expression = '';
+        this.result = '0';
+        this.lastOperation = null;
+        this.waitingForOperand = false;
+        this.updateDisplay();
+      }
+
+      displayError(message) {
+        this.display = message;
+        this.result = message;
+        this.expression = '';
+        this.waitingForOperand = true;
+
+        const resultEl = document.querySelector('.result');
+        if (resultEl) {
+          resultEl.classList.add('error-shake');
+          setTimeout(() => {
+            resultEl.classList.remove('error-shake');
+          }, 500);
+        }
+
+        this.updateDisplay();
+      }
+
+      toggleAngleMode() {
+        this.angleMode = this.angleMode === 'deg' ? 'rad' : 'deg';
+        const modeIndicator = document.querySelector('.angle-mode');
+        if (modeIndicator) {
+          modeIndicator.textContent = this.angleMode.toUpperCase();
+        }
+      }
+    }
+
+    // Initialize calculator
+    const calculator = new ScientificCalculator();
+
+    // Handle button clicks
+    function setupEventListeners() {
+      const buttons = document.querySelectorAll('button');
+
+      buttons.forEach(button => {
+        button.addEventListener('click', (e) => {
+          const type = e.currentTarget.dataset.type;
+          const value = e.currentTarget.dataset.value;
+
+          switch(type) {
+            case 'number':
+              if (value === '.') {
+                calculator.inputDecimal();
+              } else {
+                calculator.inputNumber(value);
+              }
+              break;
+            case 'operator':
+              calculator.inputOperation(value);
+              break;
+            case 'function':
+              calculator.handleFunction(value);
+              break;
+            case 'equals':
+              calculator.calculate();
+              break;
+            case 'special':
+              if (value === 'AC') {
+                calculator.allClear();
+              } else if (value === 'C') {
+                calculator.clearEntry();
+              }
+              break;
+          }
+        });
+      });
+
+      // Keyboard support
+      document.addEventListener('keydown', (e) => {
+        const key = e.key;
+
+        // Numbers
+        if (/[0-9]/.test(key)) {
+          calculator.inputNumber(key);
+        }
+        // Operators
+        else if (key === '+') {
+          calculator.inputOperation('+');
+        }
+        else if (key === '-') {
+          calculator.inputOperation('-');
+        }
+        else if (key === '*') {
+          calculator.inputOperation('*');
+        }
+        else if (key === '/') {
+          calculator.inputOperation('/');
+        }
+        // Decimal
+        else if (key === '.') {
+          calculator.inputDecimal();
+        }
+        // Equals/Enter
+        else if (key === '=' || key === 'Enter') {
+          calculator.calculate();
+        }
+        // Clear
+        else if (key === 'Escape' || key.toLowerCase() === 'c') {
+          calculator.allClear();
+        }
+        // Backspace
+        else if (key === 'Backspace') {
+          if (calculator.display.length > 1) {
+            calculator.display = calculator.display.slice(0, -1);
+          } else {
+            calculator.display = '0';
+          }
+          calculator.result = calculator.display;
+          calculator.updateDisplay();
+        }
+      });
+    }
+
+    // Initialize the calculator when DOM is loaded
+    document.addEventListener('DOMContentLoaded', () => {
+      setupEventListeners();
+    });
+  </script>
+</body>
+</html>`;
+}
+
+// Create the calculator HTML file
+const outputDir = path.join(__dirname, 'assets');
+if (!fs.existsSync(outputDir)) {
+  fs.mkdirSync(outputDir, { recursive: true });
+}
+
+const outputPath = path.join(outputDir, 'calculator.html');
+fs.writeFileSync(outputPath, generateCalculatorHTML());
+
+console.log('✅ Scientific calculator UI generated successfully!');
+console.log('📁 File created at:', outputPath);
